@@ -22,6 +22,7 @@ class BaseAgent(ABC):
         endpoint: str,
         llm_name: str,
         model_id: str,
+        gpt_model: str,
         api_key: str,
         user_api_key: Optional[str] = None,
         prompt: str = "",
@@ -38,6 +39,7 @@ class BaseAgent(ABC):
         self.endpoint = endpoint
         self.llm_name = llm_name
         self.model_id = model_id
+        self.gpt_model = gpt_model
         self.api_key = api_key
         self.user_api_key = user_api_key
         self.prompt = prompt

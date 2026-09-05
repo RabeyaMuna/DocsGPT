@@ -52,19 +52,28 @@ class ConversationService:
         sources: List[Dict[str, Any]],
         tool_calls: List[Dict[str, Any]],
         llm: Any,
-        model_id: str,
-        decoded_token: Dict[str, Any],
+        model_id: Optional[str] = None,
+        decoded_token: Optional[Dict[str, Any]] = None,
         index: Optional[int] = None,
         api_key: Optional[str] = None,
         agent_id: Optional[str] = None,
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
         attachment_ids: Optional[List[str]] = None,
+        gpt_model: Optional[str] = None,
     ) -> str:
         """Save or update a conversation in the database"""
+        if decoded_token is None:
+            raise ValueError("Decoded token is required")
         user_id = decoded_token.get("sub")
         if not user_id:
             raise ValueError("User ID not found in token")
+
+        # Use gpt_model if model_id is not provided
+        if model_id is None and gpt_model is not None:
+            model_id = gpt_model
+        if model_id is None:
+            raise ValueError("Model ID not found")
         current_time = datetime.now(timezone.utc)
 
         # clean up in sources array such that we save max 1k characters for text part
