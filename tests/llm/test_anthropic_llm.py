@@ -2,9 +2,11 @@ import sys
 import types
 import pytest
 
+
 class _FakeCompletion:
     def __init__(self, text):
         self.completion = text
+
 
 class _FakeCompletions:
     def __init__(self):
@@ -17,6 +19,7 @@ class _FakeCompletions:
             return self._stream
         return _FakeCompletion("final")
 
+
 class _FakeAnthropic:
     def __init__(self, api_key=None):
         self.api_key = api_key
@@ -27,8 +30,9 @@ class _FakeAnthropic:
 def patch_anthropic(monkeypatch):
     fake = types.ModuleType("anthropic")
     fake.Anthropic = _FakeAnthropic
-    fake.HUMAN_PROMPT = "<HUMAN>"
-    fake.AI_PROMPT = "<AI>"
+    # Use the same constants as defined in application/llm/anthropic.py
+    fake.HUMAN_PROMPT = "\n\nHuman: "
+    fake.AI_PROMPT = "\n\nAssistant: "
     sys.modules["anthropic"] = fake
     yield
     sys.modules.pop("anthropic", None)
@@ -47,7 +51,7 @@ def test_anthropic_raw_gen_builds_prompt_and_returns_completion():
     last = llm.anthropic.completions.last_kwargs
     assert last["model"] == "claude-2"
     assert last["max_tokens_to_sample"] == 55
-    assert last["prompt"].startswith("<HUMAN>") and last["prompt"].endswith("<AI>")
+    assert last["prompt"].startswith("\n\nHuman: ") and last["prompt"].endswith("\n\nAssistant: ")
     assert "### Context" in last["prompt"] and "### Question" in last["prompt"]
 
 
@@ -62,4 +66,3 @@ def test_anthropic_raw_gen_stream_yields_chunks():
     gen = llm._raw_gen_stream(llm, model="claude", messages=msgs, stream=True, max_tokens=10)
     chunks = list(gen)
     assert chunks == ["s1", "s2"]
-

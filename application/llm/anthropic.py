@@ -1,7 +1,11 @@
-from anthropic import AI_PROMPT, Anthropic, HUMAN_PROMPT
+from anthropic import Anthropic
 
 from application.core.settings import settings
 from application.llm.base import BaseLLM
+
+# Define prompt constants locally since they're no longer exported by the anthropic SDK
+HUMAN_PROMPT = "\n\nHuman: "
+AI_PROMPT = "\n\nAssistant: "
 
 
 class AnthropicLLM(BaseLLM):

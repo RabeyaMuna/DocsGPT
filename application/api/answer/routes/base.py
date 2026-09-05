@@ -1,9 +1,10 @@
 import datetime
 import json
 import logging
-from typing import Any, Dict, Generator, List, Optional
+from collections.abc import Generator
+from typing import Any
 
-from flask import jsonify, make_response, Response
+from flask import Response, jsonify, make_response
 from flask_restx import Namespace
 
 from application.api.answer.services.conversation_service import ConversationService
@@ -11,7 +12,6 @@ from application.core.model_utils import (
     get_api_key_for_provider,
     get_provider_from_model_id,
 )
-
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
 from application.llm.llm_creator import LLMCreator
@@ -35,8 +35,8 @@ class BaseAnswerResource:
         self.conversation_service = ConversationService()
 
     def validate_request(
-        self, data: Dict[str, Any], require_conversation_id: bool = False
-    ) -> Optional[Response]:
+        self, data: dict[str, Any], require_conversation_id: bool = False
+    ) -> Response | None:
         """Common request validation"""
         required_fields = ["question"]
         if require_conversation_id:
@@ -45,7 +45,7 @@ class BaseAnswerResource:
             return missing_fields
         return None
 
-    def check_usage(self, agent_config: Dict) -> Optional[Response]:
+    def check_usage(self, agent_config: dict) -> Response | None:
         """Check if there is a usage limit and if it is exceeded
 
         Args:
@@ -143,17 +143,17 @@ class BaseAnswerResource:
         self,
         question: str,
         agent: Any,
-        conversation_id: Optional[str],
-        user_api_key: Optional[str],
-        decoded_token: Dict[str, Any],
+        conversation_id: str | None,
+        user_api_key: str | None,
+        decoded_token: dict[str, Any],
         isNoneDoc: bool = False,
-        index: Optional[int] = None,
+        index: int | None = None,
         should_save_conversation: bool = True,
-        attachment_ids: Optional[List[str]] = None,
-        agent_id: Optional[str] = None,
+        attachment_ids: list[str] | None = None,
+        agent_id: str | None = None,
         is_shared_usage: bool = False,
-        shared_token: Optional[str] = None,
-        model_id: Optional[str] = None,
+        shared_token: str | None = None,
+        model_id: str | None = None,
     ) -> Generator[str, None, None]:
         """
         Generator function that streams the complete conversation response.
@@ -331,11 +331,11 @@ class BaseAnswerResource:
                     )
                 except Exception as e:
                     logger.error(
-                        f"Error saving partial response: {str(e)}", exc_info=True
+                        f"Error saving partial response: {e!s}", exc_info=True
                     )
             raise
         except Exception as e:
-            logger.error(f"Error in stream: {str(e)}", exc_info=True)
+            logger.error(f"Error in stream: {e!s}", exc_info=True)
             data = json.dumps(
                 {
                     "type": "error",
@@ -377,7 +377,7 @@ class BaseAnswerResource:
                     thought = event["thought"]
                 elif event["type"] == "error":
                     logger.error(f"Error from stream: {event['error']}")
-                    return None, None, None, None, event["error"], None
+                    return None, None, None, None, event["error"]
                 elif event["type"] == "end":
                     stream_ended = True
             except (json.JSONDecodeError, KeyError) as e:
@@ -385,7 +385,7 @@ class BaseAnswerResource:
                 continue
         if not stream_ended:
             logger.error("Stream ended unexpectedly without an 'end' event.")
-            return None, None, None, None, "Stream ended unexpectedly", None
+            return None, None, None, None, "Stream ended unexpectedly"
         result = (
             conversation_id,
             response_full,
