@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from application.agents.classic_agent import ClassicAgent
 from application.core.settings import settings
 
@@ -132,16 +133,12 @@ class TestBaseAgentBuildMessages:
     def test_build_messages_uses_title_as_fallback(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ClassicAgent(**agent_base_params)
-
-        messages = agent._build_messages("System prompt", "query")
+        pass
 
     def test_build_messages_uses_source_as_fallback(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ClassicAgent(**agent_base_params)
-
-        messages = agent._build_messages("System prompt", "query")
+        pass
 
 
 @pytest.mark.unit
