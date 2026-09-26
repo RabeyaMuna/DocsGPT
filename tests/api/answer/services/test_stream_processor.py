@@ -258,9 +258,10 @@ class TestToolPreFetch:
 
     def test_cryptoprice_prefetch_with_saved_parameters(self, mock_mongo_db):
         """Test that cryptoprice tool is pre-fetched with saved parameter values from MongoDB structure"""
+        from unittest.mock import MagicMock, patch
+
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
-        from unittest.mock import patch, MagicMock
 
         # Setup MongoDB with cryptoprice tool configuration
         # NOTE: The collection is called "user_tools" not "tools"
@@ -367,9 +368,10 @@ class TestToolPreFetch:
 
     def test_prefetch_with_missing_saved_values_uses_defaults(self, mock_mongo_db):
         """Test that pre-fetch falls back to defaults when saved values are missing"""
+        from unittest.mock import MagicMock, patch
+
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
-        from unittest.mock import patch, MagicMock
 
         tools_collection = mock_mongo_db[settings.MONGO_DB_NAME]["user_tools"]
         tool_id = ObjectId()
@@ -441,7 +443,7 @@ class TestToolPreFetch:
                 "price": 2500.00
             }
 
-            tools_data = processor.pre_fetch_tools()
+            processor.pre_fetch_tools()
 
             # Should use default values when saved values are missing
             call_args = mock_tool.execute_action.call_args
@@ -453,9 +455,10 @@ class TestToolPreFetch:
 
     def test_prefetch_with_tool_id_reference(self, mock_mongo_db):
         """Test that tools can be referenced by MongoDB ObjectId in templates"""
+        from unittest.mock import MagicMock, patch
+
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
-        from unittest.mock import patch, MagicMock
 
         tools_collection = mock_mongo_db[settings.MONGO_DB_NAME]["user_tools"]
         tool_id = ObjectId()
@@ -516,9 +519,10 @@ class TestToolPreFetch:
 
     def test_prefetch_with_multiple_same_name_tools(self, mock_mongo_db):
         """Test that multiple tools with the same name can be distinguished by ID"""
+        from unittest.mock import MagicMock, patch
+
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
-        from unittest.mock import patch, MagicMock
 
         tools_collection = mock_mongo_db[settings.MONGO_DB_NAME]["user_tools"]
 
