@@ -1,3 +1,4 @@
+import re
 import pytest
 from application.agents.tools.todo_list import TodoListTool
 from application.core.settings import settings
@@ -75,49 +76,58 @@ def todo_tool(monkeypatch) -> TodoListTool:
     return TodoListTool({"tool_id": "test_tool"}, user_id="test_user")
 
 
-def test_create_and_get(todo_tool: TodoListTool):
-    res = todo_tool.execute_action("todo_create", title="Write tests", description="Write pytest cases")
-    assert res["status_code"] == 201
-    todo_id = res["todo_id"]
+def _extract_todo_id(create_result: str) -> int:
+    """Extract the todo ID from a create result string like 'Todo created with ID 1: Title'."""
+    match = re.search(r'Todo created with ID (\d+)', create_result)
+    if match:
+        return int(match.group(1))
+    raise ValueError(f"Cannot extract todo_id from: {create_result}")
 
-    get_res = todo_tool.execute_action("todo_get", todo_id=todo_id)
-    assert get_res["status_code"] == 200
-    assert get_res["todo"]["title"] == "Write tests"
-    assert get_res["todo"]["description"] == "Write pytest cases"
+
+def test_create_and_get(todo_tool: TodoListTool):
+    res = todo_tool.execute_action("create", title="Write tests")
+    assert "Todo created with ID" in res
+    assert "Write tests" in res
+    todo_id = _extract_todo_id(res)
+
+    get_res = todo_tool.execute_action("get", todo_id=todo_id)
+    assert f"Todo [{todo_id}]" in get_res
+    assert "Write tests" in get_res
+    assert "open" in get_res
 
 
 def test_get_all_todos(todo_tool: TodoListTool):
-    todo_tool.execute_action("todo_create", title="Task 1")
-    todo_tool.execute_action("todo_create", title="Task 2")
+    todo_tool.execute_action("create", title="Task 1")
+    todo_tool.execute_action("create", title="Task 2")
 
-    list_res = todo_tool.execute_action("todo_list")
-    assert list_res["status_code"] == 200
-    titles = [todo["title"] for todo in list_res["todos"]]
-    assert "Task 1" in titles
-    assert "Task 2" in titles
+    list_res = todo_tool.execute_action("list")
+    assert "Todos:" in list_res
+    assert "[1] Task 1 (open)" in list_res
+    assert "[2] Task 2 (open)" in list_res
 
 
 def test_update_todo(todo_tool: TodoListTool):
-    create_res = todo_tool.execute_action("todo_create", title="Initial Title")
-    todo_id = create_res["todo_id"]
+    create_res = todo_tool.execute_action("create", title="Initial Title")
+    todo_id = _extract_todo_id(create_res)
 
-    update_res = todo_tool.execute_action("todo_update", todo_id=todo_id, updates={"title": "Updated Title", "status": "done"})
-    assert update_res["status_code"] == 200
+    update_res = todo_tool.execute_action("update", todo_id=todo_id, title="Updated Title")
+    assert "updated to: Updated Title" in update_res
 
-    get_res = todo_tool.execute_action("todo_get", todo_id=todo_id)
-    assert get_res["todo"]["title"] == "Updated Title"
-    assert get_res["todo"]["status"] == "done"
+    get_res = todo_tool.execute_action("get", todo_id=todo_id)
+    assert "Updated Title" in get_res
+    # status remains "open" because _update only changes title
+    assert "open" in get_res
 
 
 def test_delete_todo(todo_tool: TodoListTool):
-    create_res = todo_tool.execute_action("todo_create", title="To Delete")
-    todo_id = create_res["todo_id"]
+    create_res = todo_tool.execute_action("create", title="To Delete")
+    todo_id = _extract_todo_id(create_res)
 
-    delete_res = todo_tool.execute_action("todo_delete", todo_id=todo_id)
-    assert delete_res["status_code"] == 200
+    delete_res = todo_tool.execute_action("delete", todo_id=todo_id)
+    assert f"Todo {todo_id} deleted" in delete_res
 
-    get_res = todo_tool.execute_action("todo_get", todo_id=todo_id)
-    assert get_res["status_code"] == 404
+    get_res = todo_tool.execute_action("get", todo_id=todo_id)
+    assert "not found" in get_res
 
 
 def test_isolation_and_default_tool_id(monkeypatch):
@@ -130,17 +140,14 @@ def test_isolation_and_default_tool_id(monkeypatch):
     tool1 = TodoListTool({"tool_id": "tool_1"}, user_id="u1")
     tool2 = TodoListTool({"tool_id": "tool_2"}, user_id="u1")
 
-    r1_create = tool1.execute_action("todo_create", title="from tool 1")
-    r2_create = tool2.execute_action("todo_create", title="from tool 2")
+    r1_create = tool1.execute_action("create", title="from tool 1")
+    r2_create = tool2.execute_action("create", title="from tool 2")
 
-    r1 = tool1.execute_action("todo_get", todo_id=r1_create["todo_id"])
-    r2 = tool2.execute_action("todo_get", todo_id=r2_create["todo_id"])
+    r1 = tool1.execute_action("get", todo_id=_extract_todo_id(r1_create))
+    r2 = tool2.execute_action("get", todo_id=_extract_todo_id(r2_create))
 
-    assert r1["status_code"] == 200
-    assert r1["todo"]["title"] == "from tool 1"
-
-    assert r2["status_code"] == 200
-    assert r2["todo"]["title"] == "from tool 2"
+    assert "from tool 1" in r1
+    assert "from tool 2" in r2
 
     # Same user, no tool_id → should default to same value
     t3 = TodoListTool({}, user_id="default_user")
@@ -149,8 +156,7 @@ def test_isolation_and_default_tool_id(monkeypatch):
     assert t3.tool_id == "default_default_user"
     assert t4.tool_id == "default_default_user"
 
-    create_res = t3.execute_action("todo_create", title="shared default")
-    r = t4.execute_action("todo_get", todo_id=create_res["todo_id"])
+    create_res = t3.execute_action("create", title="shared default")
+    r = t4.execute_action("get", todo_id=_extract_todo_id(create_res))
 
-    assert r["status_code"] == 200
-    assert r["todo"]["title"] == "shared default"
+    assert "shared default" in r
