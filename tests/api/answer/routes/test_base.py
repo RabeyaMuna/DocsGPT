@@ -268,14 +268,14 @@ class TestUsageChecking:
 
 @pytest.mark.unit
 class TestGPTModelRetrieval:
-    def test_initializes_gpt_model(self, mock_mongo_db, flask_app):
+    def test_initializes_default_model_id(self, mock_mongo_db, flask_app):
         from application.api.answer.routes.base import BaseAnswerResource
 
         with flask_app.app_context():
             resource = BaseAnswerResource()
 
-            assert hasattr(resource, "gpt_model")
-            assert resource.gpt_model is not None
+            assert hasattr(resource, "default_model_id")
+            assert resource.default_model_id is not None
 
 
 @pytest.mark.unit
