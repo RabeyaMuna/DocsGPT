@@ -1,0 +1,10 @@
+#!/bin/sh
+'''exec' /home/yisenxu/rabeya/mini-swe-agent-ci-based/results/think_repair_deepseek/8efb5578f2c0b9ad8e539bb79ff522c50d3bb771/testbed/.venv-docsgpt-426/bin/python3 "$0" "$@"
+' '''
+# -*- coding: utf-8 -*-
+import re
+import sys
+from duckduckgo_search.cli import safe_entry_point
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(safe_entry_point())

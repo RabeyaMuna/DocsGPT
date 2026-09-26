@@ -2,8 +2,9 @@
 """
 
 import io
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from botocore.exceptions import ClientError
 
 from application.storage.s3 import S3Storage

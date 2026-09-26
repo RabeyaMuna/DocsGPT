@@ -2,8 +2,9 @@
 """
 
 import io
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
 
 from application.storage.local import LocalStorage
 

@@ -1,4 +1,5 @@
 import types
+
 import pytest
 
 from application.llm.openai import OpenAILLM
