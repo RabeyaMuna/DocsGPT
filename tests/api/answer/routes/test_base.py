@@ -347,8 +347,6 @@ class TestCompleteStreamMethod:
                 ]
             )
 
-            mock_retriever = MagicMock()
-            mock_retriever.get_params.return_value = {}
 
             decoded_token = {"sub": "user123"}
 
@@ -356,7 +354,6 @@ class TestCompleteStreamMethod:
                 resource.complete_stream(
                     question="Test?",
                     agent=mock_agent,
-                    retriever=mock_retriever,
                     conversation_id=None,
                     user_api_key=None,
                     decoded_token=decoded_token,
@@ -377,8 +374,6 @@ class TestCompleteStreamMethod:
             mock_agent = MagicMock()
             mock_agent.gen.side_effect = Exception("Test error")
 
-            mock_retriever = MagicMock()
-            mock_retriever.get_params.return_value = {}
 
             decoded_token = {"sub": "user123"}
 
@@ -386,7 +381,6 @@ class TestCompleteStreamMethod:
                 resource.complete_stream(
                     question="Test?",
                     agent=mock_agent,
-                    retriever=mock_retriever,
                     conversation_id=None,
                     user_api_key=None,
                     decoded_token=decoded_token,
@@ -409,8 +403,6 @@ class TestCompleteStreamMethod:
                 ]
             )
 
-            mock_retriever = MagicMock()
-            mock_retriever.get_params.return_value = {}
 
             decoded_token = {"sub": "user123"}
 
@@ -423,7 +415,6 @@ class TestCompleteStreamMethod:
                     resource.complete_stream(
                         question="Test?",
                         agent=mock_agent,
-                        retriever=mock_retriever,
                         conversation_id=None,
                         user_api_key=None,
                         decoded_token=decoded_token,
@@ -448,8 +439,6 @@ class TestCompleteStreamMethod:
                 ]
             )
 
-            mock_retriever = MagicMock()
-            mock_retriever.get_params.return_value = {"retriever": "test"}
 
             decoded_token = {"sub": "user123"}
 
@@ -457,7 +446,6 @@ class TestCompleteStreamMethod:
                 resource.complete_stream(
                     question="Test question?",
                     agent=mock_agent,
-                    retriever=mock_retriever,
                     conversation_id=None,
                     user_api_key="test_key",
                     decoded_token=decoded_token,
