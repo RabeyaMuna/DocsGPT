@@ -17,4 +17,9 @@ class AgentCreator:
         if not agent_class:
             raise ValueError(f"No agent class found for type {type}")
         
-        return agent_class(*args, **kwargs)
+        # Filter out kwargs that are not accepted by the agent's __init__
+        import inspect
+        init_params = inspect.signature(agent_class.__init__).parameters
+        valid_kwargs = {k: v for k, v in kwargs.items() if k in init_params}
+        
+        return agent_class(*args, **valid_kwargs)

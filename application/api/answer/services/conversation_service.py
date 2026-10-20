@@ -60,6 +60,7 @@ class ConversationService:
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
         attachment_ids: Optional[List[str]] = None,
+        gpt_model: Optional[str] = None,
     ) -> str:
         """Save or update a conversation in the database"""
         user_id = decoded_token.get("sub")

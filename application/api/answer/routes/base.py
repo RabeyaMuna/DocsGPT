@@ -34,6 +34,7 @@ class BaseAnswerResource:
         self.user_logs_collection = db["user_logs"]
         self.default_model_id = get_default_model_id()
         self.conversation_service = ConversationService()
+        self.gpt_model = None
 
     def validate_request(
         self, data: Dict[str, Any], require_conversation_id: bool = False
