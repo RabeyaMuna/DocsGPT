@@ -10,6 +10,8 @@ class AnthropicLLM(BaseLLM):
 
         super().__init__(*args, **kwargs)
         self.api_key = api_key or settings.ANTHROPIC_API_KEY or settings.API_KEY
+        if not self.api_key:
+            raise ValueError("Anthropic API key is required. Provide via api_key argument, ANTHROPIC_API_KEY, or API_KEY setting.")
         self.user_api_key = user_api_key
         self.anthropic = Anthropic(api_key=self.api_key)
         self.HUMAN_PROMPT = HUMAN_PROMPT
@@ -29,7 +31,7 @@ class AnthropicLLM(BaseLLM):
         user_question = messages[-1]["content"]
         prompt = f"### Context \n {context} \n ### Question \n {user_question}"
         if stream:
-            return self.gen_stream(model, prompt, stream, max_tokens, **kwargs)
+            return self.gen_stream(model, prompt, max_tokens, **kwargs)
         completion = self.anthropic.completions.create(
             model=model,
             max_tokens_to_sample=max_tokens,
