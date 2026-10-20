@@ -1,5 +1,5 @@
+from typing import Any, Generator
 from unittest.mock import Mock, patch
-from typing import Any, Dict, Generator
 
 from application.llm.handlers.base import LLMHandler, LLMResponse, ToolCall
 
@@ -105,7 +105,7 @@ class ConcreteHandler(LLMHandler):
             raw_response=response
         )
 
-    def create_tool_message(self, tool_call: ToolCall, result: Any) -> Dict:
+    def create_tool_message(self, tool_call: ToolCall, result: Any) -> dict:
         return {
             "role": "tool",
             "content": str(result),
@@ -113,8 +113,7 @@ class ConcreteHandler(LLMHandler):
         }
 
     def _iterate_stream(self, response: Any) -> Generator:
-        for chunk in response:
-            yield chunk
+        yield from response
 
 
 class TestLLMHandler:
@@ -195,15 +194,15 @@ class TestLLMHandler:
         tools_dict = {}
         messages = [{"role": "user", "content": "Hello"}]
         
-        with patch.object(handler, 'prepare_messages', return_value=messages) as mock_prepare:
-            with patch.object(handler, 'handle_non_streaming', return_value="final") as mock_handle:
-                result = handler.process_message_flow(
-                    mock_agent, initial_response, tools_dict, messages, stream=False
-                )
-                
-                mock_prepare.assert_called_once_with(mock_agent, messages, None)
-                mock_handle.assert_called_once_with(mock_agent, initial_response, tools_dict, messages)
-                assert result == "final"
+        with patch.object(handler, 'prepare_messages', return_value=messages) as mock_prepare, \
+             patch.object(handler, 'handle_non_streaming', return_value="final") as mock_handle:
+            result = handler.process_message_flow(
+                mock_agent, initial_response, tools_dict, messages, stream=False
+            )
+            
+            mock_prepare.assert_called_once_with(mock_agent, messages, None)
+            mock_handle.assert_called_once_with(mock_agent, initial_response, tools_dict, messages)
+            assert result == "final"
 
     def test_process_message_flow_streaming(self):
         """Test process_message_flow for streaming."""
@@ -217,15 +216,15 @@ class TestLLMHandler:
             yield "chunk1"
             yield "chunk2"
         
-        with patch.object(handler, 'prepare_messages', return_value=messages) as mock_prepare:
-            with patch.object(handler, 'handle_streaming', return_value=mock_generator()) as mock_handle:
-                result = handler.process_message_flow(
-                    mock_agent, initial_response, tools_dict, messages, stream=True
-                )
-                
-                mock_prepare.assert_called_once_with(mock_agent, messages, None)
-                mock_handle.assert_called_once_with(mock_agent, initial_response, tools_dict, messages)
-                
-                # Verify it's a generator
-                chunks = list(result)
-                assert chunks == ["chunk1", "chunk2"]
+        with patch.object(handler, 'prepare_messages', return_value=messages) as mock_prepare, \
+             patch.object(handler, 'handle_streaming', return_value=mock_generator()) as mock_handle:
+            result = handler.process_message_flow(
+                mock_agent, initial_response, tools_dict, messages, stream=True
+            )
+            
+            mock_prepare.assert_called_once_with(mock_agent, messages, None)
+            mock_handle.assert_called_once_with(mock_agent, initial_response, tools_dict, messages)
+            
+            # Verify it's a generator
+            chunks = list(result)
+            assert chunks == ["chunk1", "chunk2"]
