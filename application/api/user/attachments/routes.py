@@ -38,19 +38,19 @@ class StoreAttachment(Resource):
     def post(self):
         decoded_token = getattr(request, "decoded_token", None)
         api_key = request.form.get("api_key") or request.args.get("api_key")
-        
+
         files = request.files.getlist("file")
         if not files:
             single_file = request.files.get("file")
             if single_file:
                 files = [single_file]
-        
+
         if not files or all(f.filename == "" for f in files):
             return make_response(
                 jsonify({"status": "error", "message": "Missing file(s)"}),
                 400,
             )
-        
+
         user = None
         if decoded_token:
             user = safe_filename(decoded_token.get("sub"))
@@ -65,12 +65,12 @@ class StoreAttachment(Resource):
             return make_response(
                 jsonify({"success": False, "message": "Authentication required"}), 401
             )
-        
+
         try:
             tasks = []
             errors = []
             original_file_count = len(files)
-            
+
             for idx, file in enumerate(files):
                 try:
                     attachment_id = ObjectId()
@@ -97,7 +97,7 @@ class StoreAttachment(Resource):
                         "filename": file.filename,
                         "error": str(file_err)
                     })
-            
+
             if not tasks:
                 error_msg = "No valid files to upload"
                 if errors:
@@ -106,7 +106,7 @@ class StoreAttachment(Resource):
                     jsonify({"status": "error", "message": error_msg, "errors": errors}),
                     400,
                 )
-            
+
             if original_file_count == 1 and len(tasks) == 1:
                 current_app.logger.info("Returning single task_id response")
                 return make_response(
@@ -128,7 +128,7 @@ class StoreAttachment(Resource):
                 if errors:
                     response_data["errors"] = errors
                     response_data["message"] += f" {len(errors)} file(s) failed."
-                
+
                 return make_response(
                     jsonify(response_data),
                     200,
