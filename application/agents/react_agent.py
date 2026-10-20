@@ -1,6 +1,6 @@
-import os
-from typing import Dict, Generator, List, Any
 import logging
+import os
+from typing import Any, Generator
 
 from application.agents.base import BaseAgent
 from application.logging import build_stack_data, LogContext
@@ -27,7 +27,7 @@ class ReActAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.plan: str = ""
-        self.observations: List[str] = []
+        self.observations: list[str] = []
 
     def _extract_content_from_llm_response(self, resp: Any) -> str:
         """
@@ -78,7 +78,7 @@ class ReActAgent(BaseAgent):
                         collected_content.append(content_piece)
             except TypeError: # If resp is not iterable (e.g. a final response object that wasn't caught above)
                 logger.debug(f"Response type {type(resp)} could not be iterated as a stream. It might be a non-streaming object not handled by specific checks.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error processing potential stream chunk: {e}, chunk was: {getattr(chunk, '__dict__', chunk)}")
 
 
@@ -86,7 +86,7 @@ class ReActAgent(BaseAgent):
 
     def _gen_inner(
         self, query: str, retriever: BaseRetriever, log_context: LogContext
-    ) -> Generator[Dict, None, None]:
+    ) -> Generator[dict, None, None]:
         # Reset state for this generation call
         self.plan = ""
         self.observations = []
@@ -201,7 +201,7 @@ class ReActAgent(BaseAgent):
                 yield content_piece
 
     def _create_final_answer(
-        self, query: str, observations: List[str], log_context: LogContext = None
+        self, query: str, observations: list[str], log_context: LogContext = None
     ) -> Generator[str, None, None]:
         observation_string = "\n".join(observations)
         max_obs_len = 10000

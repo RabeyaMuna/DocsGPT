@@ -1,6 +1,6 @@
-import logging
 import datetime
-from typing import Optional, Dict, Any
+import logging
+from typing import Any, ClassVar
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -10,13 +10,15 @@ from googleapiclient.errors import HttpError
 from application.core.settings import settings
 from application.parser.connectors.base import BaseConnectorAuth
 
+logger = logging.getLogger(__name__)
+
 
 class GoogleDriveAuth(BaseConnectorAuth):
     """
     Handles Google OAuth 2.0 authentication for Google Drive access.
     """
     
-    SCOPES = [
+    SCOPES: ClassVar[list[str]] = [
         'https://www.googleapis.com/auth/drive.file'
     ]
     
@@ -30,7 +32,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
 
 
 
-    def get_authorization_url(self, state: Optional[str] = None) -> str:
+    def get_authorization_url(self, state: str | None = None) -> str:
         try:
             flow = Flow.from_client_config(
                 {
@@ -55,11 +57,11 @@ class GoogleDriveAuth(BaseConnectorAuth):
             
             return authorization_url
             
-        except Exception as e:
-            logging.error(f"Error generating authorization URL: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"Error generating authorization URL: {e}")
             raise
     
-    def exchange_code_for_tokens(self, authorization_code: str) -> Dict[str, Any]:
+    def exchange_code_for_tokens(self, authorization_code: str) -> dict[str, Any]:
         try:
             if not authorization_code:
                 raise ValueError("Authorization code is required")
@@ -83,7 +85,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
             credentials = flow.credentials
 
             if not credentials.refresh_token:
-                logging.warning("OAuth flow did not return a refresh_token.")
+                logger.warning("OAuth flow did not return a refresh_token.")
             if not credentials.token:
                 raise ValueError("OAuth flow did not return an access token")
 
@@ -111,11 +113,11 @@ class GoogleDriveAuth(BaseConnectorAuth):
                 'expiry': credentials.expiry.isoformat() if credentials.expiry else None
             }
 
-        except Exception as e:
-            logging.error(f"Error exchanging code for tokens: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"Error exchanging code for tokens: {e}")
             raise
     
-    def refresh_access_token(self, refresh_token: str) -> Dict[str, Any]:
+    def refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         try:
             if not refresh_token:
                 raise ValueError("Refresh token is required")
@@ -140,11 +142,11 @@ class GoogleDriveAuth(BaseConnectorAuth):
                 'scopes': credentials.scopes,
                 'expiry': credentials.expiry.isoformat() if credentials.expiry else None
             }
-        except Exception as e:
-            logging.error(f"Error refreshing access token: {e}", exc_info=True)
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"Error refreshing access token: {e}")
             raise
     
-    def create_credentials_from_token_info(self, token_info: Dict[str, Any]) -> Credentials:
+    def create_credentials_from_token_info(self, token_info: dict[str, Any]) -> Credentials:
         from application.core.settings import settings
 
         access_token = token_info.get('access_token')
@@ -199,15 +201,12 @@ class GoogleDriveAuth(BaseConnectorAuth):
                 expiry_dt = parser.parse(token_info['expiry'])
                 current_time = datetime.datetime.now(datetime.timezone.utc)
                 return current_time >= expiry_dt - datetime.timedelta(seconds=60)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return True
 
-        if 'access_token' in token_info and token_info['access_token']:
-            return False
-
-        return True
+        return not ('access_token' in token_info and token_info['access_token'])
     
-    def get_token_info_from_session(self, session_token: str) -> Dict[str, Any]:
+    def get_token_info_from_session(self, session_token: str) -> dict[str, Any]:
         try:
             from application.core.mongo_db import MongoDB
             from application.core.settings import settings
@@ -241,7 +240,7 @@ class GoogleDriveAuth(BaseConnectorAuth):
 
             return token_info
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise ValueError(f"Failed to retrieve Google Drive token information: {str(e)}")
 
     def validate_credentials(self, credentials: Credentials) -> bool:
@@ -260,8 +259,8 @@ class GoogleDriveAuth(BaseConnectorAuth):
             return True
 
         except HttpError as e:
-            logging.error(f"HTTP error validating credentials: {e}")
+            logger.error(f"HTTP error validating credentials: {e}")
             return False
-        except Exception as e:
-            logging.error(f"Error validating credentials: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Error validating credentials: {e}")
             return False

@@ -2,13 +2,13 @@
 
 import io
 import os
-from typing import BinaryIO, Callable, List
+from typing import BinaryIO, Callable
 
 import boto3
-from application.core.settings import settings
-
-from application.storage.base import BaseStorage
 from botocore.exceptions import ClientError
+
+from application.core.settings import settings
+from application.storage.base import BaseStorage
 
 
 class S3Storage(BaseStorage):
@@ -84,7 +84,7 @@ class S3Storage(BaseStorage):
         except ClientError:
             return False
 
-    def list_files(self, directory: str) -> List[str]:
+    def list_files(self, directory: str) -> list[str]:
         """List all files in a directory in S3 storage."""
         # Ensure directory ends with a slash if it's not empty
 
@@ -115,6 +115,8 @@ class S3Storage(BaseStorage):
         import logging
         import tempfile
 
+        logger = logging.getLogger(__name__)
+
         if not self.file_exists(path):
             raise FileNotFoundError(f"File not found in S3: {path}")
         with tempfile.NamedTemporaryFile(
@@ -128,7 +130,7 @@ class S3Storage(BaseStorage):
 
                 return processor_func(local_path=temp_file.name, **kwargs)
             except Exception as e:
-                logging.error(f"Error processing S3 file {path}: {e}", exc_info=True)
+                logger.exception(f"Error processing S3 file {path}: {e}")
                 raise
 
     def is_directory(self, path: str) -> bool:
@@ -154,7 +156,7 @@ class S3Storage(BaseStorage):
             MaxKeys=1
         )
 
-        return 'Contents' in response
+        return bool(response.get('Contents'))
 
     def remove_directory(self, directory: str) -> bool:
         """

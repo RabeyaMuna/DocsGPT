@@ -1,5 +1,6 @@
 import pytest
 from openapi_parser import parse
+
 from application.parser.file.openapi3_parser import OpenAPI3Parser
 
 

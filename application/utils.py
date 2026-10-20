@@ -162,9 +162,7 @@ def limit_chat_history(history, max_token_limit=None, gpt_model="docsgpt"):
 
 def validate_function_name(function_name):
     """Validates if a function name matches the allowed pattern."""
-    if not re.match(r"^[a-zA-Z0-9_-]+$", function_name):
-        return False
-    return True
+    return bool(re.match(r"^[a-zA-Z0-9_-]+$", function_name))
 
 
 def generate_image_url(image_path):
