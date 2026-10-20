@@ -4,7 +4,6 @@ from bson import ObjectId
 
 @pytest.mark.unit
 class TestGetPromptFunction:
-
     def test_loads_custom_prompt_from_database(self, mock_mongo_db):
         from application.api.answer.services.stream_processor import get_prompt
         from application.core.settings import settings
@@ -44,7 +43,6 @@ class TestGetPromptFunction:
 
 @pytest.mark.unit
 class TestStreamProcessorInitialization:
-
     def test_initializes_with_decoded_token(self, mock_mongo_db):
         from application.api.answer.services.stream_processor import StreamProcessor
 
@@ -99,14 +97,11 @@ class TestStreamProcessorInitialization:
 
 @pytest.mark.unit
 class TestStreamProcessorHistoryLoading:
-
     def test_loads_history_from_existing_conversation(self, mock_mongo_db):
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
 
-        conversations_collection = mock_mongo_db[settings.MONGO_DB_NAME][
-            "conversations"
-        ]
+        conversations_collection = mock_mongo_db[settings.MONGO_DB_NAME]["conversations"]
         conv_id = ObjectId()
 
         conversations_collection.insert_one(
@@ -137,9 +132,7 @@ class TestStreamProcessorHistoryLoading:
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
 
-        conversations_collection = mock_mongo_db[settings.MONGO_DB_NAME][
-            "conversations"
-        ]
+        conversations_collection = mock_mongo_db[settings.MONGO_DB_NAME]["conversations"]
         conv_id = ObjectId()
 
         conversations_collection.insert_one(
@@ -173,7 +166,6 @@ class TestStreamProcessorHistoryLoading:
 
 @pytest.mark.unit
 class TestStreamProcessorAgentConfiguration:
-
     def test_configures_agent_from_valid_api_key(self, mock_mongo_db):
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
@@ -215,7 +207,6 @@ class TestStreamProcessorAgentConfiguration:
 
 @pytest.mark.unit
 class TestStreamProcessorAttachments:
-
     def test_processes_attachments_from_request(self, mock_mongo_db):
         from application.api.answer.services.stream_processor import StreamProcessor
         from application.core.settings import settings
@@ -246,10 +237,7 @@ class TestStreamProcessorAttachments:
         processor = StreamProcessor(request_data, {"sub": "user_123"})
 
         assert processor.attachments == []
-        assert (
-            "attachments" not in processor.data
-            or processor.data.get("attachments") is None
-        )
+        assert "attachments" not in processor.data or processor.data.get("attachments") is None
 
 
 @pytest.mark.unit
@@ -283,28 +271,23 @@ class TestToolPreFetch:
                                 "symbol": {
                                     "type": "string",
                                     "description": "Crypto symbol",
-                                    "value": "BTC"  # Saved value in MongoDB
+                                    "value": "BTC",  # Saved value in MongoDB
                                 },
                                 "currency": {
                                     "type": "string",
                                     "description": "Currency for price",
-                                    "value": "USD"  # Saved value in MongoDB
-                                }
+                                    "value": "USD",  # Saved value in MongoDB
+                                },
                             },
-                            "required": ["symbol", "currency"]
-                        }
+                            "required": ["symbol", "currency"],
+                        },
                     }
                 ],
-                "config": {
-                    "token": ""
-                }
+                "config": {"token": ""},
             }
         )
 
-        request_data = {
-            "question": "What is the price of Bitcoin?",
-            "tools": [str(tool_id)]
-        }
+        request_data = {"question": "What is the price of Bitcoin?", "tools": [str(tool_id)]}
 
         processor = StreamProcessor(request_data, {"sub": "user_123"})
         processor._required_tool_actions = {"cryptoprice": {"cryptoprice_get"}}
@@ -327,10 +310,10 @@ class TestToolPreFetch:
                         "type": "object",
                         "properties": {
                             "symbol": {"type": "string", "description": "Crypto symbol"},
-                            "currency": {"type": "string", "description": "Currency for price"}
+                            "currency": {"type": "string", "description": "Currency for price"},
                         },
-                        "required": ["symbol", "currency"]
-                    }
+                        "required": ["symbol", "currency"],
+                    },
                 }
             ]
 
@@ -338,7 +321,7 @@ class TestToolPreFetch:
             mock_tool.execute_action.return_value = {
                 "status_code": 200,
                 "price": 45000.50,
-                "message": "Price of BTC in USD retrieved successfully."
+                "message": "Price of BTC in USD retrieved successfully.",
             }
 
             # Execute pre-fetch
@@ -391,26 +374,19 @@ class TestToolPreFetch:
                                 "symbol": {
                                     "type": "string",
                                     "description": "Crypto symbol",
-                                    "default": "ETH"  # Only default, no saved value
+                                    "default": "ETH",  # Only default, no saved value
                                 },
-                                "currency": {
-                                    "type": "string",
-                                    "description": "Currency",
-                                    "default": "EUR"
-                                }
+                                "currency": {"type": "string", "description": "Currency", "default": "EUR"},
                             },
-                            "required": ["symbol", "currency"]
-                        }
+                            "required": ["symbol", "currency"],
+                        },
                     }
                 ],
-                "config": {}
+                "config": {},
             }
         )
 
-        request_data = {
-            "question": "Crypto price?",
-            "tools": [str(tool_id)]
-        }
+        request_data = {"question": "Crypto price?", "tools": [str(tool_id)]}
 
         processor = StreamProcessor(request_data, {"sub": "user_123"})
         processor._required_tool_actions = {"cryptoprice": {"cryptoprice_get"}}
@@ -430,16 +406,13 @@ class TestToolPreFetch:
                         "type": "object",
                         "properties": {
                             "symbol": {"type": "string", "default": "ETH"},
-                            "currency": {"type": "string", "default": "EUR"}
-                        }
-                    }
+                            "currency": {"type": "string", "default": "EUR"},
+                        },
+                    },
                 }
             ]
 
-            mock_tool.execute_action.return_value = {
-                "status_code": 200,
-                "price": 2500.00
-            }
+            mock_tool.execute_action.return_value = {"status_code": 200, "price": 2500.00}
 
             tools_data = processor.pre_fetch_tools()
 
@@ -471,10 +444,7 @@ class TestToolPreFetch:
                     {
                         "name": "memory_ls",
                         "description": "List files",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {}
-                        }
+                        "parameters": {"type": "object", "properties": {}},
                     }
                 ],
                 "config": {},
@@ -489,9 +459,7 @@ class TestToolPreFetch:
             str(tool_id): {"memory_ls"}  # Reference by ObjectId string
         }
 
-        with patch(
-            "application.agents.tools.tool_manager.ToolManager"
-        ) as mock_manager_class:
+        with patch("application.agents.tools.tool_manager.ToolManager") as mock_manager_class:
             mock_manager = MagicMock()
             mock_manager_class.return_value = mock_manager
 
@@ -526,24 +494,26 @@ class TestToolPreFetch:
         tool_id_1 = ObjectId()
         tool_id_2 = ObjectId()
 
-        tools_collection.insert_many([
-            {
-                "_id": tool_id_1,
-                "name": "memory",
-                "user": "user_123",
-                "status": True,
-                "actions": [{"name": "memory_ls", "parameters": {"properties": {}}}],
-                "config": {"path": "/home"},
-            },
-            {
-                "_id": tool_id_2,
-                "name": "memory",
-                "user": "user_123",
-                "status": True,
-                "actions": [{"name": "memory_ls", "parameters": {"properties": {}}}],
-                "config": {"path": "/work"},
-            }
-        ])
+        tools_collection.insert_many(
+            [
+                {
+                    "_id": tool_id_1,
+                    "name": "memory",
+                    "user": "user_123",
+                    "status": True,
+                    "actions": [{"name": "memory_ls", "parameters": {"properties": {}}}],
+                    "config": {"path": "/home"},
+                },
+                {
+                    "_id": tool_id_2,
+                    "name": "memory",
+                    "user": "user_123",
+                    "status": True,
+                    "actions": [{"name": "memory_ls", "parameters": {"properties": {}}}],
+                    "config": {"path": "/work"},
+                },
+            ]
+        )
 
         request_data = {"question": "test"}
         processor = StreamProcessor(request_data, {"sub": "user_123"})
@@ -553,9 +523,7 @@ class TestToolPreFetch:
             str(tool_id_2): {"memory_ls"}  # Only reference the second one
         }
 
-        with patch(
-            "application.agents.tools.tool_manager.ToolManager"
-        ) as mock_manager_class:
+        with patch("application.agents.tools.tool_manager.ToolManager") as mock_manager_class:
             mock_manager = MagicMock()
             mock_manager_class.return_value = mock_manager
 
@@ -563,9 +531,7 @@ class TestToolPreFetch:
             mock_tool = MagicMock()
             mock_manager.load_tool.return_value = mock_tool
 
-            mock_tool.get_actions_metadata.return_value = [
-                {"name": "memory_ls", "parameters": {"properties": {}}}
-            ]
+            mock_tool.get_actions_metadata.return_value = [{"name": "memory_ls", "parameters": {"properties": {}}}]
             mock_tool.execute_action.return_value = "Work directory"
 
             result = processor.pre_fetch_tools()
