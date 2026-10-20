@@ -44,9 +44,9 @@ function Upload({
   onSuccessfulUpload?: () => void;
 }) {
   const token = useSelector(selectToken);
-  
+
   const [files, setfiles] = useState<File[]>(receivedFile);
-  const [activeTab, setActiveTab] = useState<boolean>(true);
+  const [activeTab] = useState<boolean>(true);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   // File picker state
@@ -261,9 +261,11 @@ function Upload({
 
   const sourceDocs = useSelector(selectSourceDocs);
   useEffect(() => {
-    if (setTimeoutRef.current) {
-      clearTimeout(setTimeoutRef.current);
-    }
+    return () => {
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+      }
+    };
   }, []);
 
   function ProgressBar({ progressPercent }: { progressPercent: number }) {
@@ -358,7 +360,7 @@ function Upload({
             .getTaskStatus(progress?.taskId as string, null)
             .then((data) => data.json())
             .then((data) => {
-              if (data.status == 'SUCCESS') {
+              if (data.status === 'SUCCESS') {
                 if (data.result.limited === true) {
                   getDocs(token).then((data) => {
                     dispatch(setSourceDocs(data));
@@ -389,11 +391,10 @@ function Upload({
                         [],
                     );
                     if (data && Array.isArray(data)) {
-                      data.map((updatedDoc: Doc) => {
+                      data.forEach((updatedDoc: Doc) => {
                         if (updatedDoc.id && !docIds.has(updatedDoc.id)) {
                           // Select the doc not present in the intersection of current Docs and fetched data
                           dispatch(setSelectedDocs(updatedDoc));
-                          return;
                         }
                       });
                     }
@@ -412,7 +413,7 @@ function Upload({
                   setModalState('INACTIVE');
                   onSuccessfulUpload?.();
                 }
-              } else if (data.status == 'PROGRESS') {
+              } else if (data.status === 'PROGRESS') {
                 setProgress(
                   (progress) =>
                     progress && {
@@ -431,7 +432,7 @@ function Upload({
           clearTimeout(timeoutID);
         }
       };
-    }, [progress, dispatch]);
+    }, [progress, dispatch, userService, getDocs, token, onSuccessfulUpload, setProgress, setIngestor, setfiles, setModalState, setSourceDocs, setSelectedDocs, sourceDocs]);
     return (
       <Progress
         title={t('modals.uploadDoc.progress.training')}
@@ -456,7 +457,7 @@ function Upload({
         },
       }));
     }
-  }, [ingestor.type]);
+  }, [ingestor.type, setfiles, setIngestor]);
 
   const doNothing = () => undefined;
 
@@ -492,7 +493,7 @@ function Upload({
     formData.append('user', 'local');
     formData.append('source', ingestor.type as string);
 
-    let configData;
+    let configData: unknown;
 
     const schema: FormField[] = IngestorFormSchemas[ingestor.type as IngestorType];
     const hasLocalFilePicker = schema.some((field: FormField) => field.type === 'local_file_picker');
@@ -545,23 +546,6 @@ function Upload({
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
   };
-
-
-
-  
-
-      
-      
-      
-    
-
-  
-
-  
-
-  
-
-  
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -662,8 +646,6 @@ function Upload({
       config: defaultConfig.config,
     });
 
-    
-
     // Clear files if switching away from local_file
     if (type !== 'local_file') {
       setfiles([]);
@@ -682,9 +664,7 @@ function Upload({
         <p className="text-jet dark:text-bright-gray text-center text-2xl font-semibold">
           {t('modals.uploadDoc.label')}
         </p>
-        
 
-        
         {activeTab && (
           <>
             <Dropdown
@@ -761,10 +741,6 @@ function Upload({
       </div>
     );
   }
-
-  
-
-  
 
   return (
     <WrapperModal
