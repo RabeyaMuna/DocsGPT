@@ -81,14 +81,8 @@ class OpenAILLM(BaseLLM):
                                 )
                             elif (
                                 "type" in item
-                                and item["type"] == "text"
-                                and "text" in item
-                            ):
-                                content_parts.append(item)
-                            elif (
-                                "type" in item
-                                and item["type"] == "file"
-                                and "file" in item
+                                and item["type"] in ("text", "file")
+                                and item["type"] in item
                             ):
                                 content_parts.append(item)
                             elif (
@@ -243,8 +237,8 @@ class OpenAILLM(BaseLLM):
 
             return result
 
-        except Exception as e:
-            logging.error(f"Error preparing structured output format: {e}")
+        except (AttributeError, TypeError, KeyError) as e:
+            logger.error(f"Error preparing structured output format: {e}")
             return None
 
     def get_supported_attachment_types(self):
@@ -313,9 +307,9 @@ class OpenAILLM(BaseLLM):
                             },
                         }
                     )
-                except Exception as e:
-                    logging.error(
-                        f"Error processing image attachment: {e}", exc_info=True
+                except (ValueError, FileNotFoundError, OSError) as e:
+                    logger.exception(
+                        f"Error processing image attachment: {e}"
                     )
                     if "content" in attachment:
                         prepared_messages[user_message_index]["content"].append(
@@ -331,8 +325,8 @@ class OpenAILLM(BaseLLM):
                     prepared_messages[user_message_index]["content"].append(
                         {"type": "file", "file": {"file_id": file_id}}
                     )
-                except Exception as e:
-                    logging.error(f"Error uploading PDF to OpenAI: {e}", exc_info=True)
+                except (ValueError, FileNotFoundError, OSError) as e:
+                    logger.exception(f"Error uploading PDF to OpenAI: {e}")
                     if "content" in attachment:
                         prepared_messages[user_message_index]["content"].append(
                             {
@@ -376,8 +370,6 @@ class OpenAILLM(BaseLLM):
         Returns:
             str: OpenAI file_id for the uploaded file.
         """
-        import logging
-
         if "openai_file_id" in attachment:
             return attachment["openai_file_id"]
 
@@ -386,12 +378,16 @@ class OpenAILLM(BaseLLM):
         if not self.storage.file_exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
 
+        def _create_file(local_path, **kwargs):
+            with open(local_path, "rb") as f:
+                return self.client.files.create(
+                    file=f, purpose="assistants"
+                ).id
+
         try:
             file_id = self.storage.process_file(
                 file_path,
-                lambda local_path, **kwargs: self.client.files.create(
-                    file=open(local_path, "rb"), purpose="assistants"
-                ).id,
+                _create_file,
             )
 
             from application.core.mongo_db import MongoDB
@@ -405,8 +401,8 @@ class OpenAILLM(BaseLLM):
                 )
 
             return file_id
-        except Exception as e:
-            logging.error(f"Error uploading file to OpenAI: {e}", exc_info=True)
+        except (ValueError, FileNotFoundError, OSError) as e:
+            logger.exception(f"Error uploading file to OpenAI: {e}")
             raise
 
 
@@ -414,10 +410,10 @@ class AzureOpenAILLM(OpenAILLM):
 
     def __init__(self, api_key, user_api_key, *args, **kwargs):
 
-        super().__init__(api_key)
-        self.api_base = (settings.OPENAI_API_BASE,)
-        self.api_version = (settings.OPENAI_API_VERSION,)
-        self.deployment_name = (settings.AZURE_DEPLOYMENT_NAME,)
+        super().__init__(api_key, user_api_key, *args, **kwargs)
+        self.api_base = settings.OPENAI_API_BASE
+        self.api_version = settings.OPENAI_API_VERSION
+        self.deployment_name = settings.AZURE_DEPLOYMENT_NAME
         from openai import AzureOpenAI
 
         self.client = AzureOpenAI(

@@ -1,10 +1,14 @@
-import os
 import logging
-from typing import List, Optional, Any
+import os
+from typing import Any
+
 from retry import retry
 from tqdm import tqdm
+
 from application.core.settings import settings
 from application.vectorstore.vector_creator import VectorCreator
+
+logger = logging.getLogger(__name__)
 
 
 def sanitize_content(content: str) -> str:
@@ -45,7 +49,7 @@ def add_text_to_store_with_retry(store: Any, doc: Any, source_id: str) -> None:
         raise
 
 
-def embed_and_store_documents(docs: List[Any], folder_name: str, source_id: str, task_status: Any) -> None:
+def embed_and_store_documents(docs: list[Any], folder_name: str, source_id: str, task_status: Any) -> None:
     """Embeds documents and stores them in a vector store.
 
     Args:
@@ -100,13 +104,13 @@ def embed_and_store_documents(docs: List[Any], folder_name: str, source_id: str,
             # Add document to vector store
             add_text_to_store_with_retry(store, doc, source_id)
         except Exception as e:
-            logging.error(f"Error embedding document {idx}: {e}", exc_info=True)
-            logging.info(f"Saving progress at document {idx} out of {total_docs}")
+            logger.exception(f"Error embedding document {idx}: {e}")
+            logger.info(f"Saving progress at document {idx} out of {total_docs}")
             try:
                 store.save_local(folder_name)
-                logging.info("Progress saved successfully")
+                logger.info("Progress saved successfully")
             except Exception as save_error:
-                logging.error(f"CRITICAL: Failed to save progress: {save_error}", exc_info=True)
+                logger.exception(f"CRITICAL: Failed to save progress: {save_error}")
                 # Continue without breaking to attempt final save
             break
 
@@ -114,9 +118,9 @@ def embed_and_store_documents(docs: List[Any], folder_name: str, source_id: str,
     if settings.VECTOR_STORE == "faiss":
         try:
             store.save_local(folder_name)
-            logging.info("Vector store saved successfully.")
+            logger.info("Vector store saved successfully.")
         except Exception as e:
-            logging.error(f"CRITICAL: Failed to save final vector store: {e}", exc_info=True)
+            logger.exception(f"CRITICAL: Failed to save final vector store: {e}")
             raise OSError(f"Unable to save vector store to {folder_name}: {e}") from e
     else:
-        logging.info("Vector store saved successfully.")
+        logger.info("Vector store saved successfully.")

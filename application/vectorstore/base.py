@@ -10,13 +10,13 @@ from application.core.settings import settings
 
 class EmbeddingsWrapper:
     def __init__(self, model_name, *args, **kwargs):
-        logging.info(f"Initializing EmbeddingsWrapper with model: {model_name}")
+        logger.info(f"Initializing EmbeddingsWrapper with model: {model_name}")
         try:
             kwargs.setdefault("trust_remote_code", True)
             self.model = SentenceTransformer(
                 model_name,
-                config_kwargs={"allow_dangerous_deserialization": True},
                 *args,
+                config_kwargs={"allow_dangerous_deserialization": True},
                 **kwargs,
             )
             if self.model is None or self.model._first_module() is None:
@@ -24,11 +24,10 @@ class EmbeddingsWrapper:
                     f"SentenceTransformer model failed to load properly for: {model_name}"
                 )
             self.dimension = self.model.get_sentence_embedding_dimension()
-            logging.info(f"Successfully loaded model with dimension: {self.dimension}")
+            logger.info(f"Successfully loaded model with dimension: {self.dimension}")
         except Exception as e:
-            logging.error(
-                f"Failed to initialize SentenceTransformer with model {model_name}: {str(e)}",
-                exc_info=True,
+            logger.exception(
+                f"Failed to initialize SentenceTransformer with model {model_name}: {e}"
             )
             raise
 
@@ -44,11 +43,11 @@ class EmbeddingsWrapper:
         elif isinstance(text, list):
             return self.embed_documents(text)
         else:
-            raise ValueError("Input must be a string or a list of strings")
+            raise TypeError("Input must be a string or a list of strings")
 
 
 class EmbeddingsSingleton:
-    _instances = {}
+    _instances: ClassVar[dict] = {}
 
     @staticmethod
     def get_instance(embeddings_name, *args, **kwargs):
@@ -86,32 +85,25 @@ class BaseVectorStore(ABC):
     @abstractmethod
     def search(self, *args, **kwargs):
         """Search for similar documents/chunks in the vectorstore"""
-        pass
 
     @abstractmethod
     def add_texts(self, texts, metadatas=None, *args, **kwargs):
         """Add texts with their embeddings to the vectorstore"""
-        pass
 
     def delete_index(self, *args, **kwargs):
         """Delete the entire index/collection"""
-        pass
 
     def save_local(self, *args, **kwargs):
         """Save vectorstore to local storage"""
-        pass
 
     def get_chunks(self, *args, **kwargs):
         """Get all chunks from the vectorstore"""
-        pass
 
     def add_chunk(self, text, metadata=None, *args, **kwargs):
         """Add a single chunk to the vectorstore"""
-        pass
 
     def delete_chunk(self, chunk_id, *args, **kwargs):
         """Delete a specific chunk from the vectorstore"""
-        pass
 
     def is_azure_configured(self):
         return (
@@ -140,16 +132,16 @@ class BaseVectorStore(ABC):
             for path in possible_paths:
                 if os.path.exists(path):
                     local_model_path = path
-                    logging.info(f"Found local model at path: {path}")
+                    logger.info(f"Found local model at path: {path}")
                     break
                 else:
-                    logging.info(f"Path does not exist: {path}")
+                    logger.info(f"Path does not exist: {path}")
             if local_model_path:
                 embedding_instance = EmbeddingsSingleton.get_instance(
                     local_model_path,
                 )
             else:
-                logging.warning(
+                logger.warning(
                     f"Local model not found in any of the paths: {possible_paths}. Falling back to HuggingFace download."
                 )
                 embedding_instance = EmbeddingsSingleton.get_instance(
