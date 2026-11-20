@@ -1,2 +1,18 @@
 # Allow lines to be as long as 120 characters.
 line-length = 120
+
+[lint]
+# Ignore rules introduced in newer versions of ruff that were not
+# part of the original CI configuration
+ignore = [
+    "LOG015",  # Use own logger instead
+    "UP035",   # Deprecated typing imports
+    "UP006",   # Use dict instead of Dict
+    "UP030",   # Use implicit format fields
+    "UP032",   # Use f-string
+    "SIM115",  # Use context manager for opening files
+    "SIM117",  # Use single with statement
+    "RUF010",  # Use explicit conversion flag
+    "TRY401",  # Redundant exception object in logging.exception
+    "EXE002",  # Executable file without shebang
+]
