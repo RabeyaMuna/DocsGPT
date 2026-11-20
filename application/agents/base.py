@@ -23,6 +23,7 @@ class BaseAgent(ABC):
         llm_name: str,
         model_id: str,
         api_key: str,
+        gpt_model: Optional[str] = None,
         user_api_key: Optional[str] = None,
         prompt: str = "",
         chat_history: Optional[List[Dict]] = None,
@@ -39,6 +40,7 @@ class BaseAgent(ABC):
         self.llm_name = llm_name
         self.model_id = model_id
         self.api_key = api_key
+        self.gpt_model = gpt_model
         self.user_api_key = user_api_key
         self.prompt = prompt
         self.decoded_token = decoded_token or {}
