@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -186,7 +186,7 @@ class TestUsageChecking:
                     "api_key": "test_key",
                     "prompt_tokens": 60,
                     "generated_tokens": 50,
-                    "timestamp": datetime.datetime.now(),
+                    "timestamp": datetime.now(timezone.utc),
                 }
             )
 
@@ -221,7 +221,7 @@ class TestUsageChecking:
                 }
             )
 
-            now = datetime.datetime.now()
+            now = datetime.now(timezone.utc)
             for i in range(3):
                 token_usage_collection.insert_one(
                     {
@@ -379,7 +379,7 @@ class TestCompleteStreamMethod:
             resource = BaseAnswerResource()
 
             mock_agent = MagicMock()
-            mock_agent.gen.side_effect = Exception("Test error")
+            mock_agent.gen.side_effect = RuntimeError("Test error")
 
             mock_retriever = MagicMock()
             mock_retriever.get_params.return_value = {}
