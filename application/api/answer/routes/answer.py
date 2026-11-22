@@ -18,6 +18,8 @@ class AnswerResource(Resource, BaseAnswerResource):
     def __init__(self, *args, **kwargs):
         Resource.__init__(self, *args, **kwargs)
         BaseAnswerResource.__init__(self)
+    
+    register = None  # Add register attribute for blueprint registration
 
     answer_model = answer_ns.model(
         "AnswerModel",
