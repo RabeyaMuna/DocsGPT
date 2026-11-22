@@ -1,5 +1,5 @@
-import pytest
 from flask import Flask
+import pytest
 from application.error import bad_request, response_error
 
 

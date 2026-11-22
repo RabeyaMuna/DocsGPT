@@ -6,10 +6,9 @@ import os
 import shutil
 import string
 import tempfile
-from typing import Any, Dict
 import zipfile
-
 from collections import Counter
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
@@ -18,7 +17,6 @@ from bson.objectid import ObjectId
 
 from application.agents.agent_creator import AgentCreator
 from application.api.answer.services.stream_processor import get_prompt
-
 from application.core.mongo_db import MongoDB
 from application.core.settings import settings
 from application.parser.chunking import Chunker
@@ -28,7 +26,6 @@ from application.parser.file.bulk import SimpleDirectoryReader
 from application.parser.remote.remote_creator import RemoteCreator
 from application.parser.schema.base import Document
 from application.retriever.retriever_creator import RetrieverCreator
-
 from application.storage.storage_creator import StorageCreator
 from application.utils import count_tokens_docs, num_tokens_from_string
 
@@ -697,9 +694,9 @@ def sync(
     return {"status": "success"}
 
 
-def sync_worker(self, frequency):
-    sync_counts = Counter()
-    sources = sources_collection.find()
+def sync_worker(self, frequency: str) -> Dict[str, int]:
+    sync_counts: Counter = Counter()
+    sources: Any = sources_collection.find()
     for doc in sources:
         if doc.get("sync_frequency") == frequency:
             name = doc.get("name")
@@ -708,7 +705,7 @@ def sync_worker(self, frequency):
             source_data = doc.get("remote_data")
             retriever = doc.get("retriever")
             doc_id = str(doc.get("_id"))
-            resp = sync(
+            resp: Dict[str, str] = sync(
                 self, source_data, name, user, source_type, frequency, retriever, doc_id
             )
             sync_counts["total_sync_count"] += 1
@@ -721,7 +718,7 @@ def sync_worker(self, frequency):
     }
 
 
-def attachment_worker(self, file_info, user):
+def attachment_worker(self, file_info: Dict[str, Any], user: str):
     """
     Process and store a single attachment without vectorization.
     """
@@ -802,7 +799,7 @@ def attachment_worker(self, file_info, user):
         raise
 
 
-def agent_webhook_worker(self, agent_id, payload):
+def agent_webhook_worker(self, agent_id: str, payload: Dict[str, Any]):
     """
     Process the webhook payload for an agent.
 
@@ -847,13 +844,13 @@ def ingest_connector(
     job_name: str,
     user: str,
     source_type: str,
-    session_token=None,
-    file_ids=None,
-    folder_ids=None,
-    recursive=True,
+    session_token: Optional[str] = None,
+    file_ids: Optional[List[str]] = None,
+    folder_ids: Optional[List[str]] = None,
+    recursive: bool = True,
     retriever: str = "classic",
     operation_mode: str = "upload",
-    doc_id=None,
+    doc_id: Optional[str] = None,
     sync_frequency: str = "never",
 ) -> Dict[str, Any]:
     """
