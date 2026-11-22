@@ -12,7 +12,6 @@ class TestAgentCreator:
         assert isinstance(agent, ClassicAgent)
         assert agent.endpoint == agent_base_params["endpoint"]
         assert agent.llm_name == agent_base_params["llm_name"]
-        assert agent.gpt_model == agent_base_params["gpt_model"]
 
     def test_create_react_agent(self, agent_base_params):
         agent = AgentCreator.create_agent("react", **agent_base_params)

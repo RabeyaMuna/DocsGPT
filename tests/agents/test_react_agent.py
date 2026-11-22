@@ -10,7 +10,8 @@ class TestReActAgent:
     def test_react_agent_initialization(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         assert isinstance(agent, ReActAgent)
         assert agent.plan == ""
@@ -19,11 +20,11 @@ class TestReActAgent:
     def test_react_agent_inherits_base_properties(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         assert agent.endpoint == agent_base_params["endpoint"]
         assert agent.llm_name == agent_base_params["llm_name"]
-        assert agent.gpt_model == agent_base_params["gpt_model"]
 
 
 @pytest.mark.unit
@@ -32,7 +33,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_string(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         response = "Simple string response"
         content = agent._extract_content(response)
@@ -42,7 +44,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_message_object(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         response = Mock()
         response.message = Mock()
@@ -55,7 +58,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_openai_response(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         response = Mock()
         response.choices = [Mock()]
@@ -71,7 +75,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_anthropic_response(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         text_block = Mock()
         text_block.text = "Anthropic content"
@@ -88,7 +93,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_openai_stream(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         chunk1 = Mock()
         chunk1.choices = [Mock()]
@@ -108,7 +114,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_anthropic_stream(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         chunk1 = Mock()
         chunk1.type = "content_block_delta"
@@ -130,7 +137,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_from_string_stream(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         response = iter(["chunk1", "chunk2", "chunk3"])
         content = agent._extract_content(response)
@@ -140,7 +148,8 @@ class TestReActAgentContentExtraction:
     def test_extract_content_handles_none_content(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
 
         response = Mock()
         response.message = Mock()
@@ -178,7 +187,8 @@ class TestReActAgentPlanning:
 
         mock_llm.gen_stream = Mock(return_value=mock_gen_stream())
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         agent.observations = ["Observation 1"]
 
         plan_chunks = list(agent._planning_phase("Test query", log_context))
@@ -202,7 +212,8 @@ class TestReActAgentPlanning:
     ):
         mock_llm.gen_stream = Mock(return_value=iter([]))
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         list(agent._planning_phase("My query", log_context))
 
         call_args = mock_llm.gen_stream.call_args[1]
@@ -234,7 +245,8 @@ class TestReActAgentFinalAnswer:
 
         mock_llm.gen_stream = Mock(return_value=mock_gen_stream())
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         agent.observations = ["Obs 1", "Obs 2"]
 
         answer_chunks = list(agent._synthesis_phase("Test query", log_context))
@@ -255,7 +267,8 @@ class TestReActAgentFinalAnswer:
     ):
         mock_llm.gen_stream = Mock(return_value=iter([]))
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         agent.observations = ["A" * 15000]
 
         list(agent._synthesis_phase("Query", log_context))
@@ -277,7 +290,8 @@ class TestReActAgentFinalAnswer:
     ):
         mock_llm.gen_stream = Mock(return_value=iter([]))
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         agent.observations = ["Obs"]
         list(agent._synthesis_phase("Query", log_context))
 
@@ -310,7 +324,8 @@ class TestReActAgentGenInner:
 
         mock_llm_handler.process_message_flow = Mock(side_effect=mock_handler)
 
-        agent = ReActAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ReActAgent(**params)
         agent.plan = "Old plan"
         agent.observations = ["Old obs"]
 

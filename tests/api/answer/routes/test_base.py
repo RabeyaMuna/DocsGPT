@@ -276,6 +276,7 @@ class TestGPTModelRetrieval:
 
             assert hasattr(resource, "gpt_model")
             assert resource.gpt_model is not None
+            assert isinstance(resource.gpt_model, str)
 
 
 @pytest.mark.unit
