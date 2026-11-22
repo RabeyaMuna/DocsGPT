@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator
+from typing import Any, Iterator
 from unittest.mock import Mock, patch
 
 from application.llm.handlers.base import LLMHandler, LLMResponse, ToolCall
@@ -89,9 +89,8 @@ class ConcreteHandler(LLMHandler):
     def create_tool_message(self, tool_call: ToolCall, result: Any) -> Dict:
         return {"role": "tool", "content": str(result), "tool_call_id": tool_call.id}
 
-    def _iterate_stream(self, response: Any) -> Generator:
-        for chunk in response:
-            yield chunk
+    def _iterate_stream(self, response: Any) -> Iterator:
+        yield from response
 
 
 class TestLLMHandler:
