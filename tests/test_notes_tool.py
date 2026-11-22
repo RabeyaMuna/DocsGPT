@@ -1,6 +1,6 @@
-import pytest
 from application.agents.tools.notes import NotesTool
 from application.core.settings import settings
+import pytest
 
 
 @pytest.fixture

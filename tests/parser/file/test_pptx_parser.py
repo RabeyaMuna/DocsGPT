@@ -1,6 +1,6 @@
-import pytest
 from pathlib import Path
 from unittest.mock import patch
+import pytest
 
 from application.parser.file.pptx_parser import PPTXParser
 
@@ -57,7 +57,7 @@ def test_pptx_parser_list_mode():
 def test_pptx_parser_import_error():
     parser = PPTXParser()
     import sys
-    with patch.dict(sys.modules, {"pptx": None}):
-        with pytest.raises(ImportError, match="pptx module is required to read .PPTX files"):
-            parser.parse_file(Path("missing.pptx"))
+    with patch.dict(sys.modules, {"pptx": None}), \
+         pytest.raises(ImportError, match="pptx module is required to read .PPTX files"):
+        parser.parse_file(Path("missing.pptx"))
 
