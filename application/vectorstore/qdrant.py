@@ -1,6 +1,6 @@
 import logging
-from application.vectorstore.base import BaseVectorStore
 from application.core.settings import settings
+from application.vectorstore.base import BaseVectorStore
 from application.vectorstore.document_class import Document
 
 
@@ -57,12 +57,12 @@ class QdrantStore(BaseVectorStore):
                     field_name="metadata.source_id",
                     field_schema=models.PayloadSchemaType.KEYWORD,
                 )
-            except Exception as index_error:
+            except qdrant_client.http.exceptions.UnexpectedResponse as index_error:
                 # Index might already exist, which is fine
                 if "already exists" not in str(index_error).lower():
                     logging.warning(f"Could not create index for metadata.source_id: {index_error}")
                     
-        except Exception as e:
+        except qdrant_client.http.exceptions.UnexpectedResponse as e:
             logging.warning(f"Could not check for collection: {e}")
 
     def search(self, *args, **kwargs):
@@ -103,7 +103,7 @@ class QdrantStore(BaseVectorStore):
                 if offset is None:
                     break
             return chunks
-        except Exception as e:
+        except qdrant_client.http.exceptions.UnexpectedResponse as e:
             logging.error(f"Error getting chunks: {e}", exc_info=True)
             return []
 
@@ -131,6 +131,6 @@ class QdrantStore(BaseVectorStore):
                 points_selector=[chunk_id],
             )
             return True
-        except Exception as e:
+        except qdrant_client.http.exceptions.UnexpectedResponse as e:
             logging.error(f"Error deleting chunk: {e}", exc_info=True)
             return False

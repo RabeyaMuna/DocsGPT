@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Any, Dict
+from typing import Any, Optional
 from application.core.settings import settings
 from application.vectorstore.base import BaseVectorStore
 from application.vectorstore.document_class import Document

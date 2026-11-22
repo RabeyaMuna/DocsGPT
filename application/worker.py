@@ -6,7 +6,7 @@ import os
 import shutil
 import string
 import tempfile
-from typing import Any, Dict
+from typing import Any, dict
 import zipfile
 
 from collections import Counter
@@ -48,14 +48,22 @@ RECURSION_DEPTH = 2
 
 
 def metadata_from_filename(title):
-    return {"title": title}
+    try:
+        return {"title": title}
+    except Exception as e:
+        logging.error(f"Error in metadata_from_filename: {e}")
+        raise
 
 
 # Define a function to generate a random string of a given length.
 
 
 def generate_random_string(length):
-    return "".join([string.ascii_letters[i % 52] for i in range(length)])
+    try:
+        return "".join([string.ascii_letters[i % 52] for i in range(length)])
+    except Exception as e:
+        logging.error(f"Error in generate_random_string: {e}")
+        raise
 
 
 current_dir = os.path.dirname(
@@ -80,7 +88,7 @@ def extract_zip_recursive(zip_path, extract_to, current_depth=0, max_depth=5):
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_to)
         os.remove(zip_path)  # Remove the zip file after extracting
-    except Exception as e:
+    except (zipfile.BadZipFile, FileNotFoundError, PermissionError) as e:
         logging.error(f"Error extracting zip file {zip_path}: {e}", exc_info=True)
         return
     # Check for nested zip files and extract them
@@ -206,7 +214,7 @@ def run_agent_logic(agent_config, input_data):
         }
         logging.info(f"Agent response: {result}")
         return result
-    except Exception as e:
+    except (ValueError, KeyError, AttributeError) as e:
         logging.error(f"Error in run_agent_logic: {e}", exc_info=True)
         raise
 
